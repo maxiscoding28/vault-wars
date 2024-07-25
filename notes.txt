@@ -1,0 +1,4 @@
+- Add CLI commands vwrs
+- Destroy command
+- Tunnel command
+- Refactor everything especially the kube api calls
