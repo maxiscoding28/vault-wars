@@ -42,7 +42,7 @@ func UnsealCluster(releaseName string, namespace string) error {
 	unsealKey := vaultInit.UnsealKeysHex[0]
 	rootToken := vaultInit.RootToken
 
-	command := []string{"vault", "operator", "unseal", unsealKey}
+	command := fmt.Sprintf("vault operator unseal %s", unsealKey)
 	out, err := execOnPod(k8Client, k8Config, util.InitNodeName(releaseName), namespace, "vault", command, false)
 	if err != nil {
 		return fmt.Errorf("error executing initial vault unseal command on pod %s: %v", util.InitNodeName(releaseName), err)

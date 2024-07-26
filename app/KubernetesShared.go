@@ -49,7 +49,8 @@ func getPods(ctx context.Context, clientset *kubernetes.Clientset, namespace str
 	return pods, err
 }
 
-func execOnPod(clientset *kubernetes.Clientset, config *rest.Config, podName string, namespace string, containerName string, command []string, ignoreNonZeroCode bool) (string, error) {
+func execOnPod(clientset *kubernetes.Clientset, config *rest.Config, podName string, namespace string, containerName string, cmdString string, ignoreNonZeroCode bool) (string, error) {
+	command := []string{"/bin/sh", "-c", cmdString}
 	req := clientset.CoreV1().RESTClient().
 		Post().
 		Resource("pods").
@@ -121,7 +122,7 @@ func AllPodsRunning(clientset *kubernetes.Clientset, releaseName string, namespa
 }
 
 func IsPodInitialized(clientset *kubernetes.Clientset, config *rest.Config, podName string, namespace string) (bool, error) {
-	command := []string{"/bin/sh", "-c", "vault status -format=json"}
+	command := "vault status -format=json"
 	output, err := execOnPod(clientset, config, podName, namespace, "vault", command, true)
 	if err != nil {
 		return false, fmt.Errorf("failed to execute command in pod %s: %v", podName, err)
@@ -133,6 +134,46 @@ func IsPodInitialized(clientset *kubernetes.Clientset, config *rest.Config, podN
 	}
 
 	return status.Initialized, nil
+}
+
+func EnsureNoPodsInitialized(clientset *kubernetes.Clientset, config *rest.Config, releaseName string, namespace string) error {
+	const maxRetries = 3
+	const retryDelay = 3 * time.Second
+
+	statefulSet, err := getStatefulSet(clientset, fmt.Sprintf("%s-vault", releaseName), namespace)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	pods, err := getPods(ctx, clientset, namespace, statefulSet.Spec.Selector)
+	if err != nil {
+		return fmt.Errorf("failed to list pods: %v", err)
+	}
+
+	for i := 0; i < maxRetries; i++ {
+		for _, pod := range pods.Items {
+			command := "vault status -format=json"
+			output, err := execOnPod(clientset, config, pod.Name, namespace, "vault", command, true)
+			if err != nil {
+				return fmt.Errorf("failed to execute command in pod %s: %v", pod.Name, err)
+			}
+
+			var status VaultStatus
+			if err := json.Unmarshal([]byte(output), &status); err != nil {
+				return fmt.Errorf("failed to unmarshal Vault status for pod %s: %v", pod.Name, err)
+			}
+
+			if status.Initialized {
+				return fmt.Errorf("pod %s is already initialized", pod.Name)
+			}
+		}
+
+		util.LogWarn("Checking if any pods are initialized. Retrying...")
+		time.Sleep(retryDelay)
+	}
+
+	return nil
 }
 
 func CountInitializedPods(clientset *kubernetes.Clientset, config *rest.Config, releaseName string, namespace string) (int, int, error) {
@@ -161,7 +202,7 @@ func CountInitializedPods(clientset *kubernetes.Clientset, config *rest.Config, 
 				continue
 			}
 
-			command := []string{"/bin/sh", "-c", "vault status -format=json"}
+			command := "vault status -format=json"
 			output, err := execOnPod(clientset, config, podName, namespace, "vault", command, true)
 			if err != nil {
 				return 0, 0, fmt.Errorf("failed to execute command in pod %s: %v", podName, err)
@@ -221,7 +262,7 @@ func UnsealPods(clientset *kubernetes.Clientset, config *rest.Config, releaseNam
 			continue
 		}
 
-		command := []string{"/bin/sh", "-c", fmt.Sprintf("vault operator unseal %s", unsealKey)}
+		command := fmt.Sprintf("vault operator unseal %s", unsealKey)
 		out, err := execOnPod(clientset, config, pod.Name, namespace, "vault", command, true)
 		if err != nil {
 			return fmt.Errorf("failed to execute unseal command on pod %s: %v", pod.Name, err)

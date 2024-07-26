@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,16 +21,12 @@ func InitializeCluster(releaseName string, namespace string) error {
 		return err
 	}
 
-	_, initializedPods, err := CountInitializedPods(k8Client, k8Config, releaseName, namespace)
+	err = EnsureNoPodsInitialized(k8Client, k8Config, releaseName, namespace)
 	if err != nil {
 		return err
 	}
 
-	if initializedPods > 0 {
-		return errors.New("unable to initialize node. Nodes `are already initialized")
-	}
-
-	command := []string{"/bin/sh", "-c", "vault operator init -key-shares=1 -key-threshold=1 -format=json"}
+	command := "vault operator init -key-shares=1 -key-threshold=1 -format=json"
 	out, err := execOnPod(k8Client, k8Config, util.InitNodeName(releaseName), namespace, "vault", command, false)
 	if err != nil {
 		return err
@@ -48,6 +43,6 @@ func InitializeCluster(releaseName string, namespace string) error {
 		return fmt.Errorf("error getting working directory: %s", err)
 	}
 	filePath := filepath.Join(workingDirectory, fileName)
-	util.LogInfo(fmt.Sprintf("Unseal keys and root token are save at:%s", filePath))
+	util.LogInfo(fmt.Sprintf("Unseal keys and root token saved at:\n\t%s", filePath))
 	return nil
 }
