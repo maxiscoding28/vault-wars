@@ -1,4 +1,9 @@
-- Add CLI commands vwrs
-- Destroy command
 - Tunnel command
-- Refactor everything especially the kube api calls
+- Clean up Code and Refactor
+- Make sure it works for Luke, Leia, and Han clusters
+    - Use Namespaces
+    - provide cluster required and namespace optional default is used otherwise.
+    - check if release is already deploy in given namespace
+    - deploy
+    - also deploy --all
+- Provide custom yaml for one of the three clusters
