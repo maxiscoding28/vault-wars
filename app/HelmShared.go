@@ -1,9 +1,9 @@
 package app
 
 import (
-	"vault-wars/util"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"vault-wars/util"
 )
 
 func isReleaseDeployed(releaseName string) error {
