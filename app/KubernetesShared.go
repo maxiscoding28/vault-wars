@@ -169,10 +169,11 @@ func EnsureNoPodsInitialized(clientset *kubernetes.Clientset, config *rest.Confi
 			}
 		}
 
-		util.LogWarn("Checking if any pods are initialized. Retrying...")
+		util.LogWarn("Checking if any pods are initialized...")
 		time.Sleep(retryDelay)
 	}
 
+	util.LogInfo(fmt.Sprintf("No pods already initialized after %d checks, attempting to initialize...", maxRetries))
 	return nil
 }
 

@@ -28,7 +28,7 @@ func VerifyDependencies() error {
 
 func isBinaryInstalled(binaryName string) bool {
 	if _, err := exec.LookPath(binaryName); err != nil {
-		util.LogError(fmt.Sprintf("Unable to find %s binary, error: %d", binaryName, err.Error()))
+		util.LogError(fmt.Sprintf("Unable to find %s binary, error: %v", binaryName, err.Error()))
 		return false
 	}
 	util.LogInfo(fmt.Sprintf("%s is installed.", binaryName))
@@ -62,9 +62,8 @@ func helmRepoAdded(repoName string) bool {
 			break
 		}
 	}
-	if err != nil {
-		util.LogWarn(fmt.Sprintf("%s repo doesn't exist.", err.Error()))
-		return false
+	if !exists {
+		util.LogWarn(fmt.Sprintf("%s repo doesn't exist.", repoName))
 	}
 
 	return exists

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -19,31 +18,31 @@ func isDoormatInstalled() error {
 	return nil
 }
 
-func getAwsAccountNumber() (string, error) {
-	fmt.Print("Please enter your AWS account number: ")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	awsAccountNumber := scanner.Text()
+// func getAwsAccountNumber() (string, error) {
+// 	fmt.Print("Please enter your AWS account number: ")
+// 	scanner := bufio.NewScanner(os.Stdin)
+// 	scanner.Scan()
+// 	awsAccountNumber := scanner.Text()
 
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error reading input: %v", err)
-	}
+// 	if err := scanner.Err(); err != nil {
+// 		return "", fmt.Errorf("error reading input: %v", err)
+// 	}
 
-	return awsAccountNumber, nil
-}
+// 	return awsAccountNumber, nil
+// }
 
-func getAwsRegion() (string, error) {
-	fmt.Print("Please enter your desired AWS region: ")
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	awsRegion := scanner.Text()
+// func getAwsRegion() (string, error) {
+// 	fmt.Print("Please enter your desired AWS region: ")
+// 	scanner := bufio.NewScanner(os.Stdin)
+// 	scanner.Scan()
+// 	awsRegion := scanner.Text()
 
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error reading input: %v", err)
-	}
+// 	if err := scanner.Err(); err != nil {
+// 		return "", fmt.Errorf("error reading input: %v", err)
+// 	}
 
-	return awsRegion, nil
-}
+// 	return awsRegion, nil
+// }
 
 func GetDoormatCredentials() error {
 	if err := isDoormatInstalled(); err != nil {
