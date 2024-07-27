@@ -8,8 +8,8 @@ import (
 )
 
 func InitializeCluster(releaseName string, namespace string) error {
-	if err := isReleaseDeployed(releaseName); err == nil {
-		return fmt.Errorf("a release named %s is not deployed", releaseName)
+	if err := isReleaseDeployed(releaseName); err != nil {
+		return err
 	}
 
 	k8Client, k8Config, err := createKubernetesClient()
@@ -21,17 +21,20 @@ func InitializeCluster(releaseName string, namespace string) error {
 		return err
 	}
 
-	err = EnsureNoPodsInitialized(k8Client, k8Config, releaseName, namespace)
+	maxRetries := 3
+	err = EnsureNoPodsInitialized(k8Client, k8Config, releaseName, namespace, maxRetries)
 	if err != nil {
 		return err
 	}
+	util.LogInfo(fmt.Sprintf("No pods already initialized after %d checks.", maxRetries))
+	util.LogInfo(fmt.Sprintf("Attempting to initialize node %s", util.InitNodeName(releaseName)))
 
 	command := "vault operator init -key-shares=1 -key-threshold=1 -format=json"
 	out, err := execOnPod(k8Client, k8Config, util.InitNodeName(releaseName), namespace, "vault", command, false)
 	if err != nil {
 		return err
 	}
-	util.LogInfo(fmt.Sprintf("Success! %s-cluster initialized", releaseName))
+	util.LogInfo(fmt.Sprintf("Success! node %s initialized", util.InitNodeName(releaseName)))
 	util.LogInfo(out)
 
 	fileName := fmt.Sprintf("%s-cluster-init.json", releaseName)

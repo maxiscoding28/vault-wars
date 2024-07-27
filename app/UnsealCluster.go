@@ -8,7 +8,7 @@ import (
 )
 
 func UnsealCluster(releaseName string, namespace string) error {
-	if err := isReleaseDeployed(releaseName); err == nil {
+	if err := isReleaseDeployed(releaseName); err != nil {
 		return err
 	}
 
@@ -57,12 +57,6 @@ func UnsealCluster(releaseName string, namespace string) error {
 	if totalPods != initializedPods {
 		return errors.New("not all pods are initialized. Retry in a few seconds")
 	}
-
-	content, err := util.ReadFile("luke-cluster-init.json")
-	if err != nil {
-		return err
-	}
-	util.LogInfo(string(content))
 
 	if err := UnsealPods(k8Client, k8Config, releaseName, namespace, util.InitNodeName(releaseName), unsealKey); err != nil {
 		return err

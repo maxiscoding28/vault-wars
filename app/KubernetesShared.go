@@ -112,7 +112,7 @@ func AllPodsRunning(clientset *kubernetes.Clientset, releaseName string, namespa
 		}
 
 		if allRunning {
-			util.LogInfo("All pods are running. Initializing cluster...")
+			util.LogInfo("All pods are running.")
 			return nil
 		}
 
@@ -136,8 +136,7 @@ func IsPodInitialized(clientset *kubernetes.Clientset, config *rest.Config, podN
 	return status.Initialized, nil
 }
 
-func EnsureNoPodsInitialized(clientset *kubernetes.Clientset, config *rest.Config, releaseName string, namespace string) error {
-	const maxRetries = 3
+func EnsureNoPodsInitialized(clientset *kubernetes.Clientset, config *rest.Config, releaseName string, namespace string, maxRetries int) error {
 	const retryDelay = 3 * time.Second
 
 	statefulSet, err := getStatefulSet(clientset, fmt.Sprintf("%s-vault", releaseName), namespace)
@@ -169,11 +168,10 @@ func EnsureNoPodsInitialized(clientset *kubernetes.Clientset, config *rest.Confi
 			}
 		}
 
-		util.LogWarn("Checking if any pods are initialized...")
+		util.LogWarn(fmt.Sprintf("Checking if any pods are initialized. Attempt %d of %d.", i, maxRetries))
 		time.Sleep(retryDelay)
 	}
 
-	util.LogInfo(fmt.Sprintf("No pods already initialized after %d checks, attempting to initialize...", maxRetries))
 	return nil
 }
 
@@ -231,7 +229,7 @@ func CountInitializedPods(clientset *kubernetes.Clientset, config *rest.Config, 
 			break
 		}
 
-		util.LogWarn("Not all pods are initialized. Retrying...")
+		util.LogWarn(fmt.Sprintf("Not all pods are initialized. Attempt %d of %d", i, maxRetries))
 		time.Sleep(retryDelay)
 	}
 

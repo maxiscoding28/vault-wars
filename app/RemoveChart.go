@@ -2,13 +2,16 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"vault-wars/util"
 )
 
 func RemoveChart(releaseName string, namespace string, nuke bool) error {
-	if err := isReleaseDeployed(releaseName); err == nil {
-		util.LogError(fmt.Sprintf("no release named %s is deployed", releaseName))
-	} else {
+	err := isReleaseDeployed(releaseName)
+
+	if err != nil && !strings.HasPrefix(err.Error(), "no release deployed with the following name") {
+		return err
+	} else if err == nil {
 		if err := uninstallChart(releaseName, namespace); err != nil {
 			return err
 		}

@@ -7,7 +7,7 @@ import (
 )
 
 func DeployChart(releaseName string, namespace string) error {
-	if err := isReleaseDeployed(releaseName); err != nil {
+	if err := isReleaseNotDeployed(releaseName); err != nil {
 		return err
 	}
 	if err := installChart(releaseName, namespace); err != nil {
@@ -19,8 +19,7 @@ func DeployChart(releaseName string, namespace string) error {
 
 func installChart(releaseName string, namespace string) error {
 	if !isValidReleaseName(releaseName) {
-		util.LogWarn(fmt.Sprintf("Release name %s is not valid.\nValid names are: luke, leia, anakin", releaseName))
-		return fmt.Errorf("release name %s is not valid", releaseName)
+		return fmt.Errorf("release name %s is not valid\nValid names are: luke, leia, anakin", releaseName)
 	}
 	filename := fmt.Sprintf("%s.yaml", releaseName)
 	if err := util.WriteFile(filename, YamlValuesMap[releaseName]); err != nil {
