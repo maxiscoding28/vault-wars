@@ -8,7 +8,7 @@ import (
 )
 
 var deployCmd = &cobra.Command{
-	Use:   "run",
+	Use:   "install",
 	Short: "Install a Vault helm chart on the cluster.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := app.DeployChart("luke", "default"); err != nil {

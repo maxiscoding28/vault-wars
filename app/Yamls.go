@@ -8,7 +8,7 @@ var YamlValuesMap = map[string]string{
 
 var lukeValuesYaml = `
 injector:
-   enabled: false
+   enabled: true
 server:
    affinity: ""
    ha:

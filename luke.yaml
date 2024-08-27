@@ -1,6 +1,6 @@
 
 injector:
-   enabled: false
+   enabled: true
 server:
    affinity: ""
    ha:
